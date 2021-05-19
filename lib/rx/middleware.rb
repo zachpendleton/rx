@@ -2,7 +2,7 @@ require "json"
 
 module Rx
   class Middleware
-    def initialize(app, options = {liveness: [], readiness: []})
+    def initialize(app, options = {liveness: [], readiness: [], deep: {critical: [], secondary: []}})
       @app = app
       @options = options
 
@@ -25,12 +25,13 @@ module Rx
         ok = options[:liveness].map(&:check).map(&:ok?).all?
         liveness_response(ok)
       when "/readiness"
-        components = options[:readiness]
-          .map(&:check)
-          .map { |r| { name: r.name, status: r.ok? ? 200 : 503, message: r.ok? ? "ok" : r.error, response_time_ms: r.timing } }
-        readiness_response(components)
+        readiness_response(check_to_component(options[:readiness]))
       when "/deep"
-        # TODO
+        readiness = check_to_component(options[:readiness])
+        critical = check_to_component(options[:deep][:critical])
+        secondary = check_to_component(options[:deep][:secondary])
+
+        deep_response(readiness, critical, secondary)
       end
     end
 
@@ -54,6 +55,22 @@ module Rx
         {"content-type" => "application/json"},
         [JSON.dump({status: status, components: components})]
       ]
+    end
+
+    def deep_response(readiness, critical, secondary)
+      status = (readiness.map { |x| x[:status] == 200 } + critical.map { |x| x[:status] == 200 }).all? ? 200 : 503
+
+      [
+        status,
+        {"content-type" => "application/json"},
+        [JSON.dump(status: status, readiness: readiness, critical: critical, secondary: secondary)]
+      ]
+    end
+
+    def check_to_component(check)
+      Array(check)
+        .map(&:check)
+        .map { |r| { name: r.name, status: r.ok? ? 200 : 503, message: r.ok? ? "ok" : r.error, response_time_ms: r.timing } }
     end
   end
 end

@@ -45,6 +45,41 @@ class MiddlewareTest < Minitest::Test
     assert_equal 2, body[0].scan(/503/).size
   end
 
+  def test_it_responds_to_deep_requests
+    status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
+    assert_equal 200, status
+  end
+
+  def test_deep_check_fails_if_readiness_fails
+    failing_check = Minitest::Mock.new
+    failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
+    @middleware.instance_variable_get(:@options)[:readiness] << failing_check
+
+    status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
+
+    assert_equal 503, status
+  end
+
+  def test_deep_check_fails_if_any_critical_fails
+    failing_check = Minitest::Mock.new
+    failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
+    @middleware.instance_variable_get(:@options)[:deep][:critical] << failing_check
+
+    status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
+
+    assert_equal 503, status
+  end
+
+  def test_deep_check_succeeds_even_if_a_secondary_fails
+    failing_check = Minitest::Mock.new
+    failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
+    @middleware.instance_variable_get(:@options)[:deep][:secondary] << failing_check
+
+    status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
+
+    assert_equal 200, status
+  end
+
   def test_it_ignores_non_health_check_requests
     _, _, body = @middleware.call({"REQUEST_PATH" => "/"})
     assert_equal ["response"], body
