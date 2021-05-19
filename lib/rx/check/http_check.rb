@@ -12,10 +12,9 @@ module Rx
 
       def check
         Result.from(name) do
-          http = Net::HTTP.new(url.host, url.port).tap do |x|
-            x.read_timeout = 1
-            x.use_ssl = url.scheme == "https"
-          end
+          http = Net::HTTP.new(url.host, url.port)
+          http.read_timeout = 1
+          http.use_ssl = url.scheme == "https"
 
           response = http.request(Net::HTTP::Get.new(path))
           response.code == "200"

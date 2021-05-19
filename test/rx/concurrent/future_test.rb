@@ -6,6 +6,12 @@ class ConcurrentFutureTest < Minitest::Test
     assert_equal "foo", future.value
   end
 
+  def test_it_caches_the_value
+    future = Rx::Concurrent::Future.execute { "foo" }
+    future.value
+    assert_equal "foo", future.value
+  end
+
   def test_it_begins_in_pending_state
     future = Rx::Concurrent::Future.new { "foo" }
     assert future.pending?

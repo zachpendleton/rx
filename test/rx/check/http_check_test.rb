@@ -7,7 +7,8 @@ class HttpCheckTest < Minitest::Test
   def setup
     @check = Rx::Check::HttpCheck.new("http://example.com")
     @http = Minitest::Mock.new
-    @http.expect(:tap, @http)
+    @http.expect(:read_timeout=, nil, [1])
+    @http.expect(:use_ssl=, nil, [false])
   end
 
   def test_it_returns_true_on_success
@@ -50,6 +51,18 @@ class HttpCheckTest < Minitest::Test
 
     Net::HTTP.stub :new, @http do
       @check.check
+    end
+  end
+
+  def test_it_can_toggle_ssl
+    check = Rx::Check::HttpCheck.new("https://example.com")
+    http = Minitest::Mock.new
+    http.expect(:read_timeout=, nil, [1])
+    http.expect(:use_ssl=, nil, [true])
+    http.expect :request, MockResponse.new("200")
+
+    Net::HTTP.stub :new, http do
+      check.check
     end
   end
 end

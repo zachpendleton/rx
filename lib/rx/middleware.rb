@@ -75,7 +75,8 @@ module Rx
 
     def check_to_component(check)
       Array(check)
-        .map(&:check)
+        .map { |check| Rx::Concurrent::Future.execute { check.check } }
+        .map(&:value)
         .map { |r| { name: r.name, status: r.ok? ? 200 : 503, message: r.ok? ? "ok" : r.error, response_time_ms: r.timing } }
     end
   end
