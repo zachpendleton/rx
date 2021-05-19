@@ -14,7 +14,7 @@ module Rx
 
         end_at = Time.now
 
-        Result.new(check_name, result, (end_at - start_at).round(2), err)
+        Result.new(check_name, result, ((end_at - start_at) * 1000).round(2), err)
       end
 
       attr_reader :name, :timing, :error
