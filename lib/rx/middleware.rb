@@ -22,12 +22,12 @@ module Rx
 
       case env["REQUEST_PATH"]
       when "/liveness"
-        ok = options[:liveness].map(&:check).all?
+        ok = options[:liveness].map(&:check).map(&:ok?).all?
         liveness_response(ok)
       when "/readiness"
         components = options[:readiness]
-          .map { |x| [x.name, x.check, x.timing, x.last_error] }
-          .map { |(name, ok, timing, err)| { name: name, status: ok ? 200 : 503, message: ok ? "ok" : err, response_time_ms: timing } }
+          .map(&:check)
+          .map { |r| { name: r.name, status: r.ok? ? 200 : 503, message: r.ok? ? "ok" : r.error, response_time_ms: r.timing } }
         readiness_response(components)
       when "/deep"
         # TODO
@@ -47,7 +47,7 @@ module Rx
     end
 
     def readiness_response(components)
-      status = components.map { |x| x[:status] == 200 }.all? ? 200 : 502
+      status = components.map { |x| x[:status] == 200 }.all? ? 200 : 503
 
       [
         status,

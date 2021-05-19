@@ -6,24 +6,26 @@ class FileSystemCheckTest < Minitest::Test
   end
 
   def test_it_returns_true_on_success
-    assert @check.check
+    result = @check.check
+    assert result.ok?
   end
 
   def test_it_returns_false_on_error
     Tempfile.stub :open, -> { raise StandardError.new } do
-      assert !@check.check
+      result = @check.check
+      assert !result.ok?
     end
   end
 
   def test_it_stores_last_error_on_failure
     Tempfile.stub :open, -> { raise StandardError.new } do
-      @check.check
-      assert_kind_of StandardError, @check.last_error
+      result = @check.check
+      assert_kind_of StandardError, result.error
     end
   end
 
   def test_it_tracks_timing_information
-    @check.check
-    assert @check.timing
+    result = @check.check
+    assert result.timing
   end
 end
