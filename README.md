@@ -1,34 +1,45 @@
 # Rx
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rx`. To experiment with that code, run `bin/console` for an interactive prompt.
+Rx is a Rack middleware that provides tiered health checks to any Rack application, including Rails-based apps.
 
-TODO: Delete this and the text above, and describe your gem
+## Tiered Health Checks
 
-## Installation
+What is a tiered health check? I'm glad you asked! Health checks serve different purposes:
 
-Add this line to your application's Gemfile:
+- Some are used by load balancers to ensure that a server is capable of serving traffic
+- Some are used by other applications to verify the health of your service as a dependency
+- Some are used by customers or status pages to determine uptime
+
+These use cases are all similar, but may require different levels of verification. One may require your service to just return 200, while another may need to check connectivity to the database, cache, or external services.
+
+Rx provides three levels of health checks:
+
+1. `/liveness`: A health check that determines if the server is running.
+2. `/readiness`: Readiness checks determine if critical, dependent services are running (think a database or cache)
+3. `/deep`: A health check that walks your entire dependency tree, checking other critical and secondary services.
+
+### Rails Applications
+
+Add `rx` to your Gemfile, and then create a new initializer with this content:
 
 ```ruby
-gem 'rx'
+Rails.application.config.middleware.insert(Rx::Middleware)
 ```
 
-And then execute:
+### Rack Applications
 
-    $ bundle install
+Coming soon.
 
-Or install it yourself as:
+### Configuring Dependencies
 
-    $ gem install rx
+Now that you're running `rx`, you will need to configure which dependencies it tests in each health check. You can do this by passing `Rx::Check` objects to the middleware. `rx` ships with a number of standard checks:
 
-## Usage
+- Filesystem health
+- ActiveRecord
+- Redis
+- HTTP
 
-TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+In addition to the stock checks, you may create your own by TODO.
 
 ## Contributing
 
