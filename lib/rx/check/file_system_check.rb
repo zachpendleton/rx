@@ -11,7 +11,7 @@ module Rx
 
       def check
         Result.from(name) do
-          Tempfile.open(FILENAME) do |f|
+          !!Tempfile.open(FILENAME) do |f|
             f.write("ok")
             f.flush
           end

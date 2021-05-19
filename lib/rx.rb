@@ -3,6 +3,7 @@
 require_relative "rx/version"
 require_relative "rx/middleware"
 require_relative "rx/check/file_system_check"
+require_relative "rx/check/http_check"
 require_relative "rx/check/result"
 
 module Rx

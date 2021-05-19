@@ -6,13 +6,19 @@ module Rx
       @app = app
       @options = options
 
+      @options[:liveness] ||= []
       if @options[:liveness].empty?
         @options[:liveness] << Rx::Check::FileSystemCheck.new
       end
 
+      @options[:readiness] ||= []
       if @options[:readiness].empty?
         @options[:readiness] << Rx::Check::FileSystemCheck.new
       end
+
+      @options[:deep] ||= {critical: [], secondary: []}
+      @options[:deep][:critical] ||= []
+      @options[:deep][:secondary] ||= []
     end
 
     def call(env)
