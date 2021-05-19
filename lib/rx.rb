@@ -6,6 +6,8 @@ require_relative "rx/check/file_system_check"
 require_relative "rx/check/generic_check"
 require_relative "rx/check/http_check"
 require_relative "rx/check/result"
+require_relative "rx/concurrent/future"
+require_relative "rx/concurrent/thread_pool"
 
 module Rx
   class Error < StandardError; end
