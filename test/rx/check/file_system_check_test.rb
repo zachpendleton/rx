@@ -17,7 +17,13 @@ class FileSystemCheckTest < Minitest::Test
 
   def test_it_stores_last_error_on_failure
     Tempfile.stub :open, -> { raise StandardError.new } do
+      @check.check
       assert_kind_of StandardError, @check.last_error
     end
+  end
+
+  def test_it_tracks_timing_information
+    @check.check
+    assert @check.timing
   end
 end

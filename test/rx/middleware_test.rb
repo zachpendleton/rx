@@ -23,6 +23,13 @@ class MiddlewareTest < Minitest::Test
     assert_equal 503, status
   end
 
+  def test_it_responds_to_readiness_requests
+    status, headers, body = @middleware.call({"REQUEST_PATH" => "/readiness"})
+
+    assert_equal 200, status
+    assert_equal({"content-type" => "application/json"}, headers)
+  end
+
   def test_it_ignores_non_health_check_requests
     _, _, body = @middleware.call({"REQUEST_PATH" => "/"})
     assert_equal ["response"], body
