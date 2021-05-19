@@ -14,6 +14,15 @@ class MiddlewareTest < Minitest::Test
     assert_equal [], body
   end
 
+  def test_liveness_fails_if_file_system_check_fails
+    fs_check = Minitest::Mock.new
+    fs_check.expect :check, false
+    @middleware.instance_variable_set(:@options, {liveness: [fs_check]})
+
+    status, _, _ = @middleware.call({"REQUEST_PATH" => "/liveness"})
+    assert_equal 503, status
+  end
+
   def test_it_ignores_non_health_check_requests
     _, _, body = @middleware.call({"REQUEST_PATH" => "/"})
     assert_equal ["response"], body
