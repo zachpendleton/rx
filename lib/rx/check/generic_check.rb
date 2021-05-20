@@ -3,7 +3,7 @@ module Rx
     class GenericCheck
       attr_reader :name
 
-      def initialize(callable, name)
+      def initialize(callable, name = "generic")
         @callable = callable
         @name = name
       end

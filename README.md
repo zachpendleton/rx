@@ -70,6 +70,11 @@ Each collection must contain 0 or more `Rx::Check` objects. Those checks will be
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/zachpendleton/rx.
 
+Some tips for developing the gem locally:
+
+* Tests can be run by calling `rake`
+* You can point your Rails app to a local gem by adding a `path` option to your Gemfile, a la `gem "rx", path: "path/to/rx" (though you _will_ need to restart Rails whenever you change the gem).
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
