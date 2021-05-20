@@ -20,15 +20,24 @@ Rx provides three levels of health checks:
 
 ### Rails Applications
 
-Add `rx` to your Gemfile, and then create a new initializer with this content:
+Add `rx` to your Gemfile, and then create a new initializer with something like this:
 
 ```ruby
-Rails.application.config.middleware.insert(Rx::Middleware)
+Rails.application.config.middleware.insert(
+  Rx::Middleware,
+  {
+    liveness: [Rx::Check::FileSystemCheck.new],
+    readiness: [
+      Rx::Check::FileSystemCheck.new,
+      Rx::Check::ActiveRecordCheck.new,
+      Rx::Check::HttpCheck.new("http://example.com"),
+      Rx::Check::GenericCheck.new(-> { $redis.ping == "PONG" }, "redis")],
+    deep: {
+      critical: [Rx::Check::HttpCheck.new("http://criticalservice.com/health")],
+      secondary: [Rx::Check::HttpCheck.new("http://otherservice.com/health-check")]
+    }
+  })
 ```
-
-### Rack Applications
-
-Coming soon.
 
 ### Configuring Dependencies
 
@@ -36,14 +45,30 @@ Now that you're running `rx`, you will need to configure which dependencies it t
 
 - Filesystem health
 - ActiveRecord
-- Redis
 - HTTP
+- Generic Check
 
-In addition to the stock checks, you may create your own by TODO.
+In addition to the stock checks, you may create your own by copying an existing check
+and modifying it (though it's probably simpler to just use GenericCheck).
+
+`RX::Middleware` expects a configuration object in the following format:
+
+```ruby
+{
+  liveness: [],
+  readiness: [],
+  deep: {
+    critical: [],
+    secondary: []
+  }
+}
+```
+
+Each collection must contain 0 or more `Rx::Check` objects. Those checks will be performed when the health check is queried.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/rx.
+Bug reports and pull requests are welcome on GitHub at https://github.com/zachpendleton/rx.
 
 ## License
 
