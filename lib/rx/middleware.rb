@@ -5,6 +5,7 @@ module Rx
     def initialize(app, options = {liveness: [], readiness: [], deep: {critical: [], secondary: []}})
       @app = app
       @options = options
+      @cache = Rx::Cache::InMemoryCache.new
 
       @options[:liveness] ||= []
       if @options[:liveness].empty?
@@ -33,11 +34,13 @@ module Rx
       when "/readiness"
         readiness_response(check_to_component(options[:readiness]))
       when "/deep"
-        readiness = check_to_component(options[:readiness])
-        critical = check_to_component(options[:deep][:critical])
-        secondary = check_to_component(options[:deep][:secondary])
+        @cache.cache("deep") do
+          readiness = check_to_component(options[:readiness])
+          critical = check_to_component(options[:deep][:critical])
+          secondary = check_to_component(options[:deep][:secondary])
 
-        deep_response(readiness, critical, secondary)
+          deep_response(readiness, critical, secondary)
+        end
       end
     end
 
