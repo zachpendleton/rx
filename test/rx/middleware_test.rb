@@ -17,7 +17,7 @@ class MiddlewareTest < Minitest::Test
   def test_liveness_fails_if_file_system_check_fails
     fs_check = Minitest::Mock.new
     fs_check.expect :check, Rx::Check::Result.new("fs", false, "err", 100)
-    @middleware.instance_variable_set(:@options, {liveness: [fs_check]})
+    @middleware.instance_variable_set(:@liveness_checks, [fs_check])
 
     status, _, _ = @middleware.call({"REQUEST_PATH" => "/liveness"})
     assert_equal 503, status
@@ -36,7 +36,7 @@ class MiddlewareTest < Minitest::Test
 
     check1.expect :check, Rx::Check::Result.new("1", true, "ok", 100)
     check2.expect :check, Rx::Check::Result.new("2", false, "err", 100)
-    @middleware.instance_variable_get(:@options)[:readiness] = [check1, check2]
+    @middleware.instance_variable_set(:@readiness_checks, [check1, check2])
 
     status, _, body = @middleware.call({"REQUEST_PATH" => "/readiness"})
 
@@ -53,7 +53,7 @@ class MiddlewareTest < Minitest::Test
   def test_deep_check_fails_if_readiness_fails
     failing_check = Minitest::Mock.new
     failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
-    @middleware.instance_variable_get(:@options)[:readiness] << failing_check
+    @middleware.instance_variable_get(:@readiness_checks) << failing_check
 
     status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
 
@@ -63,7 +63,7 @@ class MiddlewareTest < Minitest::Test
   def test_deep_check_fails_if_any_critical_fails
     failing_check = Minitest::Mock.new
     failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
-    @middleware.instance_variable_get(:@options)[:deep][:critical] << failing_check
+    @middleware.instance_variable_get(:@deep_critical_checks) << failing_check
 
     status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
 
@@ -73,7 +73,7 @@ class MiddlewareTest < Minitest::Test
   def test_deep_check_succeeds_even_if_a_secondary_fails
     failing_check = Minitest::Mock.new
     failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
-    @middleware.instance_variable_get(:@options)[:deep][:secondary] << failing_check
+    @middleware.instance_variable_get(:@deep_secondary_checks) << failing_check
 
     status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
 

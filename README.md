@@ -25,18 +25,15 @@ Add `rx` to your Gemfile, and then create a new initializer with something like 
 ```ruby
 Rails.application.config.middleware.insert(
   Rx::Middleware,
-  {
     liveness: [Rx::Check::FileSystemCheck.new],
     readiness: [
       Rx::Check::FileSystemCheck.new,
       Rx::Check::ActiveRecordCheck.new,
       Rx::Check::HttpCheck.new("http://example.com"),
       Rx::Check::GenericCheck.new(-> { $redis.ping == "PONG" }, "redis")],
-    deep: {
-      critical: [Rx::Check::HttpCheck.new("http://criticalservice.com/health")],
-      secondary: [Rx::Check::HttpCheck.new("http://otherservice.com/health-check")]
-    }
-  })
+    deep_critical: [Rx::Check::HttpCheck.new("http://criticalservice.com/health")],
+    deep_secondary: [Rx::Check::HttpCheck.new("http://otherservice.com/health-check")]
+  )
 ```
 
 ### Configuring Dependencies
@@ -51,20 +48,16 @@ Now that you're running `rx`, you will need to configure which dependencies it t
 In addition to the stock checks, you may create your own by copying an existing check
 and modifying it (though it's probably simpler to just use GenericCheck).
 
-`RX::Middleware` expects a configuration object in the following format:
+`RX::Middleware` accepts the following named parameters as configuration:
 
 ```ruby
-{
-  liveness: [],
-  readiness: [],
-  deep: {
-    critical: [],
-    secondary: []
-  }
-}
+liveness: [],
+readiness: [],
+deep_critical: [],
+deep_secondary: []
 ```
 
-Each collection must contain 0 or more `Rx::Check` objects. Those checks will be performed when the health check is queried.
+Each collection must contain 0 or more `Rx::Check` objects. Those checks will be performed when the health check is queried. Deep checks will always also run the readiness checks.
 
 ## Contributing
 

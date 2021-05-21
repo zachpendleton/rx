@@ -2,24 +2,20 @@ require "json"
 
 module Rx
   class Middleware
-    def initialize(app, options = {liveness: [], readiness: [], deep: {critical: [], secondary: []}})
+    def initialize(app,
+                   liveness:       [Rx::Check::FileSystemCheck.new],
+                   readiness:      [Rx::Check::FileSystemCheck.new],
+                   deep_critical:  [],
+                   deep_secondary: [],
+                   options:        {})
       @app = app
       @options = options
       @cache = Rx::Cache::InMemoryCache.new
 
-      @options[:liveness] ||= []
-      if @options[:liveness].empty?
-        @options[:liveness] << Rx::Check::FileSystemCheck.new
-      end
-
-      @options[:readiness] ||= []
-      if @options[:readiness].empty?
-        @options[:readiness] << Rx::Check::FileSystemCheck.new
-      end
-
-      @options[:deep] ||= {critical: [], secondary: []}
-      @options[:deep][:critical] ||= []
-      @options[:deep][:secondary] ||= []
+      @liveness_checks = liveness
+      @readiness_checks = readiness
+      @deep_critical_checks = deep_critical
+      @deep_secondary_checks = deep_secondary
     end
 
     def call(env)
@@ -29,15 +25,15 @@ module Rx
 
       case env["REQUEST_PATH"]
       when "/liveness"
-        ok = options[:liveness].map(&:check).map(&:ok?).all?
+        ok = check_to_component(liveness_checks).map { |x| x[:status] == 200 }.all?
         liveness_response(ok)
       when "/readiness"
-        readiness_response(check_to_component(options[:readiness]))
+        readiness_response(check_to_component(readiness_checks))
       when "/deep"
         @cache.cache("deep") do
-          readiness = check_to_component(options[:readiness])
-          critical = check_to_component(options[:deep][:critical])
-          secondary = check_to_component(options[:deep][:secondary])
+          readiness = check_to_component(readiness_checks)
+          critical  = check_to_component(deep_critical_checks)
+          secondary = check_to_component(deep_secondary_checks)
 
           deep_response(readiness, critical, secondary)
         end
@@ -46,7 +42,7 @@ module Rx
 
     private
 
-    attr_reader :app, :options
+    attr_reader :app, :liveness_checks, :readiness_checks, :deep_critical_checks, :deep_secondary_checks
 
     def health_check_request?(env)
       %w[/liveness /readiness /deep].include?(env["REQUEST_PATH"])
