@@ -3,6 +3,7 @@
 require_relative "rx/version"
 require_relative "rx/middleware"
 require_relative "rx/cache/in_memory_cache"
+require_relative "rx/cache/no_op_cache"
 require_relative "rx/check/active_record_check"
 require_relative "rx/check/file_system_check"
 require_relative "rx/check/generic_check"

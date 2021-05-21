@@ -2,6 +2,10 @@ require "json"
 
 module Rx
   class Middleware
+    DEFAULT_OPTIONS = {
+      cache: true
+    }.freeze
+
     def initialize(app,
                    liveness:       [Rx::Check::FileSystemCheck.new],
                    readiness:      [Rx::Check::FileSystemCheck.new],
@@ -9,8 +13,8 @@ module Rx
                    deep_secondary: [],
                    options:        {})
       @app = app
-      @options = options
-      @cache = Rx::Cache::InMemoryCache.new
+      @options = DEFAULT_OPTIONS.merge(options)
+      @cache = cache_factory(self.options)
 
       @liveness_checks = liveness
       @readiness_checks = readiness
@@ -42,7 +46,16 @@ module Rx
 
     private
 
-    attr_reader :app, :liveness_checks, :readiness_checks, :deep_critical_checks, :deep_secondary_checks
+    attr_reader :app, :liveness_checks, :readiness_checks, :deep_critical_checks,
+                :deep_secondary_checks, :options
+
+    def cache_factory(options)
+      unless options[:cache]
+        return Rx::Cache::NoOpCache.new
+      end
+
+      Rx::Cache::InMemoryCache.new
+    end
 
     def health_check_request?(env)
       %w[/liveness /readiness /deep].include?(env["REQUEST_PATH"])

@@ -84,4 +84,14 @@ class MiddlewareTest < Minitest::Test
     _, _, body = @middleware.call({"REQUEST_PATH" => "/"})
     assert_equal ["response"], body
   end
+
+  def test_if_cache_option_is_false_no_caching_happens
+    middleware = Rx::Middleware.new(@app, options: { cache: false})
+    body1 = JSON.parse(middleware.call("REQUEST_PATH" => "/deep")[2].first)
+    body2 = JSON.parse(middleware.call("REQUEST_PATH" => "/deep")[2].first)
+
+    body1["readiness"]
+      .zip(body2["readiness"])
+      .each { |(a, b)| a["response_time_ms"] != b["response_time_ms"] }
+  end
 end
