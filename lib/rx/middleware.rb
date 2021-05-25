@@ -14,7 +14,7 @@ module Rx
                    options:        {})
       @app = app
       @options = DEFAULT_OPTIONS.merge(options)
-      @cache = cache_factory(self.options)
+      @cache = cache_factory(@options)
 
       @liveness_checks = liveness
       @readiness_checks = readiness
