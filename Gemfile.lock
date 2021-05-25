@@ -1,8 +1,7 @@
 PATH
   remote: .
   specs:
-    rx (0.1.0)
-      simplecov (= 0.21.2)
+    rx-healthcheck (0.1.1)
 
 GEM
   remote: https://rubygems.org/
@@ -23,7 +22,8 @@ PLATFORMS
 DEPENDENCIES
   minitest (~> 5.0)
   rake (~> 13.0)
-  rx!
+  rx-healthcheck!
+  simplecov (= 0.21.2)
 
 BUNDLED WITH
    2.2.11
