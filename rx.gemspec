@@ -3,7 +3,7 @@
 require_relative "lib/rx/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "rx"
+  spec.name          = "rx-healthcheck"
   spec.version       = Rx::VERSION
   spec.authors       = ["Zach Pendleton"]
   spec.email         = ["zachpendleton@gmail.com"]
