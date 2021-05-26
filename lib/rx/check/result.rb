@@ -2,7 +2,7 @@ module Rx
   module Check
     class Result
       def self.from(check_name)
-        start_at = Time.now
+        start_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         err = nil
         result = false
 
@@ -12,7 +12,7 @@ module Rx
           err = ex
         end
 
-        end_at = Time.now
+        end_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
         Result.new(check_name, result, ((end_at - start_at) * 1000).round(2), err)
       end
