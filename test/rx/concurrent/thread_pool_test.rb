@@ -21,8 +21,7 @@ class ConcurrentThreadPoolTest < Minitest::Test
 
   def test_it_restarts
     @pool.start
-    @pool.shutdown
-    @pool.start
+    @pool.restart
 
     assert @pool.started?
   ensure

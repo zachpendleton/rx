@@ -14,6 +14,10 @@ module Rx
         Future.new(&block).execute
       end
 
+      def self.thread_pool
+        @@pool
+      end
+
       def initialize(&block)
         @channel = Queue.new
         @state = :pending

@@ -25,6 +25,11 @@ module Rx
         self
       end
 
+      def restart
+        shutdown
+        start
+      end
+
       def started?
         pool.map(&:alive?).any?
       end
