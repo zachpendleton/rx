@@ -23,11 +23,11 @@ module Rx
     end
 
     def call(env)
-      unless health_check_request?(env)
+      unless health_check_request?(path(env))
         return app.call(env)
       end
 
-      case env["REQUEST_PATH"]
+      case path(env)
       when "/liveness"
         ok = check_to_component(liveness_checks).map { |x| x[:status] == 200 }.all?
         liveness_response(ok)
@@ -57,12 +57,16 @@ module Rx
       Rx::Cache::InMemoryCache.new
     end
 
-    def health_check_request?(env)
-      %w[/liveness /readiness /deep].include?(env["REQUEST_PATH"])
+    def health_check_request?(path)
+      %w[/liveness /readiness /deep].include?(path)
     end
 
     def liveness_response(is_ok)
       [is_ok ? 200 : 503, {}, []]
+    end
+
+    def path(env)
+      env["PATH_INFO"] || env["REQUEST_PATH"] || env["REQUEST_URI"]
     end
 
     def readiness_response(components)

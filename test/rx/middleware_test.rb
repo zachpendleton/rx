@@ -7,7 +7,7 @@ class MiddlewareTest < Minitest::Test
   end
 
   def test_it_responds_to_liveness_requests
-    status, headers, body = @middleware.call({"REQUEST_PATH" => "/liveness"})
+    status, headers, body = @middleware.call("PATH_INFO" => "/liveness")
 
     assert_equal 200, status
     assert_equal Hash.new, headers
@@ -19,12 +19,12 @@ class MiddlewareTest < Minitest::Test
     fs_check.expect :check, Rx::Check::Result.new("fs", false, "err", 100)
     @middleware.instance_variable_set(:@liveness_checks, [fs_check])
 
-    status, _, _ = @middleware.call({"REQUEST_PATH" => "/liveness"})
+    status, _, _ = @middleware.call("PATH_INFO" => "/liveness")
     assert_equal 503, status
   end
 
   def test_it_responds_to_readiness_requests
-    status, headers, _ = @middleware.call({"REQUEST_PATH" => "/readiness"})
+    status, headers, _ = @middleware.call("PATH_INFO" => "/readiness")
 
     assert_equal 200, status
     assert_equal({"content-type" => "application/json"}, headers)
@@ -38,7 +38,7 @@ class MiddlewareTest < Minitest::Test
     check2.expect :check, Rx::Check::Result.new("2", false, "err", 100)
     @middleware.instance_variable_set(:@readiness_checks, [check1, check2])
 
-    status, _, body = @middleware.call({"REQUEST_PATH" => "/readiness"})
+    status, _, body = @middleware.call("PATH_INFO" => "/readiness")
 
     assert_equal 503, status
     assert_equal 1, body[0].scan(/200/).size
@@ -46,8 +46,9 @@ class MiddlewareTest < Minitest::Test
   end
 
   def test_it_responds_to_deep_requests
-    status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
+    status, _, body = @middleware.call("PATH_INFO" => "/deep")
     assert_equal 200, status
+    assert body[0] != "response"
   end
 
   def test_deep_check_fails_if_readiness_fails
@@ -55,7 +56,7 @@ class MiddlewareTest < Minitest::Test
     failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
     @middleware.instance_variable_get(:@readiness_checks) << failing_check
 
-    status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
+    status, _, _ = @middleware.call("PATH_INFO" => "/deep")
 
     assert_equal 503, status
   end
@@ -65,7 +66,7 @@ class MiddlewareTest < Minitest::Test
     failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
     @middleware.instance_variable_get(:@deep_critical_checks) << failing_check
 
-    status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
+    status, _, _ = @middleware.call("PATH_INFO" => "/deep")
 
     assert_equal 503, status
   end
@@ -75,23 +76,36 @@ class MiddlewareTest < Minitest::Test
     failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
     @middleware.instance_variable_get(:@deep_secondary_checks) << failing_check
 
-    status, _, _ = @middleware.call("REQUEST_PATH" => "/deep")
+    status, _, _ = @middleware.call("PATH_INFO" => "/deep")
 
     assert_equal 200, status
   end
 
   def test_it_ignores_non_health_check_requests
-    _, _, body = @middleware.call({"REQUEST_PATH" => "/"})
+    _, _, body = @middleware.call("PATH_INFO" => "/")
     assert_equal ["response"], body
   end
 
   def test_if_cache_option_is_false_no_caching_happens
     middleware = Rx::Middleware.new(@app, options: { cache: false})
-    body1 = JSON.parse(middleware.call("REQUEST_PATH" => "/deep")[2].first)
-    body2 = JSON.parse(middleware.call("REQUEST_PATH" => "/deep")[2].first)
+    body1 = JSON.parse(middleware.call("PATH_INFO" => "/deep")[2].first)
+    body2 = JSON.parse(middleware.call("PATH_INFO" => "/deep")[2].first)
 
     body1["readiness"]
       .zip(body2["readiness"])
       .each { |(a, b)| a["response_time_ms"] != b["response_time_ms"] }
   end
+
+  def test_it_reads_path_info_from_request_uri
+    status, _, body = @middleware.call("REQUEST_URI" => "/liveness")
+    assert_equal 200, status
+    assert_equal [], body
+  end
+
+  def test_it_reads_path_info_from_request_path
+    status, _, body = @middleware.call("REQUEST_PATH" => "/liveness")
+    assert_equal 200, status
+    assert_equal [], body
+  end
+
 end
