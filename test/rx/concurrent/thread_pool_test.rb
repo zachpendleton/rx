@@ -48,4 +48,14 @@ class ConcurrentThreadPoolTest < Minitest::Test
   ensure
     @pool.shutdown
   end
+
+  def test_it_restarts_automatically_when_forked
+    @pool.start
+    channel = Queue.new
+    @pool.submit { channel << 1 }
+    fork do
+      @pool.submit { channel << 1 }
+      assert_equal 1, channel.pop
+    end
+  end
 end
