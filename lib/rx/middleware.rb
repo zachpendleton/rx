@@ -3,7 +3,8 @@ require "json"
 module Rx
   class Middleware
     DEFAULT_OPTIONS = {
-      cache: true
+      cache: true,
+      authorization: false
     }.freeze
 
     def initialize(app,
@@ -34,12 +35,16 @@ module Rx
       when "/readiness"
         readiness_response(check_to_component(readiness_checks))
       when "/deep"
-        @cache.cache("deep") do
-          readiness = check_to_component(readiness_checks)
-          critical  = check_to_component(deep_critical_checks)
-          secondary = check_to_component(deep_secondary_checks)
+        if @options[:authorization] && !Rx::Util::HealthCheckAuthorization.new(env, @options[:authorization]).ok?
+          deep_response_authorization_failed
+        else
+          @cache.cache("deep") do
+            readiness = check_to_component(readiness_checks)
+            critical  = check_to_component(deep_critical_checks)
+            secondary = check_to_component(deep_secondary_checks)
 
-          deep_response(readiness, critical, secondary)
+            deep_response(readiness, critical, secondary)
+          end
         end
       end
     end
@@ -76,6 +81,14 @@ module Rx
         status,
         {"content-type" => "application/json"},
         [JSON.dump({status: status, components: components})]
+      ]
+    end
+
+    def deep_response_authorization_failed
+      [
+        403,
+        {"content-type" => "application/json"},
+        [JSON.dump({ message: "authorization failed" })]
       ]
     end
 
