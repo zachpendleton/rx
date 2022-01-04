@@ -59,14 +59,30 @@ deep_secondary: []
 
 Each collection must contain 0 or more `Rx::Check` objects. Those checks will be performed when the health check is queried. Deep checks will always also run the readiness checks.
 
+### Deep end-point authorization
+
+It is considered as a good practice to protect the deep checks with a GUID to mitigate DDOS attacks. Hence you have 2 options to enable this. One is to use the `default_authorization` by passing the token to the authorization inside options hash, which you can use in a request with the authorization_token in the header of it. The other option would be to pass a lambda with an env argument (this gives you access to hash of request data) and have your own `costum_authorization`:
+
+```ruby
+options: {
+  #default
+  authorization: <token>
+
+  #costum
+  authorization: -> (env) {
+    #your code goes here
+  }
+ }
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/zachpendleton/rx.
 
 Some tips for developing the gem locally:
 
-* Tests can be run by calling `rake`
-* You can point your Rails app to a local gem by adding a `path` option to your Gemfile, a la `gem "rx", path: "path/to/rx" (though you _will_ need to restart Rails whenever you change the gem).
+- Tests can be run by calling `rake`
+- You can point your Rails app to a local gem by adding a `path` option to your Gemfile, a la `gem "rx", path: "path/to/rx" (though you _will_ need to restart Rails whenever you change the gem).
 
 ## License
 
