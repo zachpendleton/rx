@@ -7,7 +7,7 @@ module Rx
       end
 
       def ok?
-        return costum_authorization(@authorization) if @authorization.is_a?(Proc)
+        return costum_authorization(@env, @authorization) if @authorization.is_a?(Proc)
 
         default_authorization(@authorization)
       end
@@ -19,13 +19,12 @@ module Rx
         req_key == key
       end
 
-      def costum_authorization(callable)
-        callable.call
+      def costum_authorization(env, callable)
+        callable.call(env)
       end
 
       def api_key(env, name)
         key = "http_#{name}".upcase
-        sth = env["#{key}"]
         env["#{key}"] unless env["#{key}"].nil?
       end
     end
