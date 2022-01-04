@@ -14,13 +14,13 @@ module Rx
 
       private
 
-      def default_authorization(key)
-        req_key = api_key(@env, "Authorization")
-        req_key == key
-      end
-
       def costum_authorization(env, callable)
         callable.call(env)
+      end
+
+      def default_authorization(key)
+        req_key = api_key(@env, "authorization_token")
+        req_key == key
       end
 
       def api_key(env, name)
