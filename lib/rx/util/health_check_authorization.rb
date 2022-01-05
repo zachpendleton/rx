@@ -7,14 +7,14 @@ module Rx
       end
 
       def ok?
-        return costum_authorization(@env, @authorization) if @authorization.is_a?(Proc)
+        return custom_authorization(@env, @authorization) if @authorization.is_a?(Proc)
 
         default_authorization(@authorization)
       end
 
       private
 
-      def costum_authorization(env, callable)
+      def custom_authorization(env, callable)
         callable.call(env)
       end
 
@@ -25,7 +25,10 @@ module Rx
 
       def api_key(env, name)
         key = "http_#{name}".upcase
-        env["#{key}"] unless env["#{key}"].nil?
+
+        raise StandardError.new("Token is not configured properly") if env["#{key}"].nil?
+
+        env["#{key}"]
       end
     end
   end
