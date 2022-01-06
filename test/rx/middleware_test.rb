@@ -51,6 +51,20 @@ class MiddlewareTest < Minitest::Test
     assert body[0] != "response"
   end
 
+  def test_deep_check_fails_if_default_authorization_fails
+    middleware = Rx::Middleware.new(@app, options: { authorization: "123"})
+
+    status, _, _ = middleware.call({"PATH_INFO" => "/deep", "HTTP_AUTHORIZATION" => "12"})
+    assert_equal 403, status
+  end
+
+  def test_deep_check_fails_if_custom_authorization_fails
+    middleware = Rx::Middleware.new(@app, options: { authorization: -> (env) { false }})
+
+    status, _, _ = middleware.call({"PATH_INFO" => "/deep"})
+    assert_equal 403, status
+  end
+
   def test_deep_check_fails_if_readiness_fails
     failing_check = Minitest::Mock.new
     failing_check.expect :check, Rx::Check::Result.new("fail", false, "err", 100)
