@@ -68,7 +68,7 @@ options: {
   #default
   authorization: <token>
 
-  #costum
+  #custom
   authorization: -> (env) {
     #your code goes here
   }

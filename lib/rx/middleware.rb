@@ -4,7 +4,7 @@ module Rx
   class Middleware
     DEFAULT_OPTIONS = {
       cache: true,
-      authorization: false
+      authorization: nil
     }.freeze
 
     def initialize(app,
@@ -35,7 +35,7 @@ module Rx
       when "/readiness"
         readiness_response(check_to_component(readiness_checks))
       when "/deep"
-        if @options[:authorization] && !Rx::Util::HealthCheckAuthorization.new(env, @options[:authorization]).ok?
+        if !Rx::Util::HealthCheckAuthorization.new(env, @options[:authorization]).ok?
           deep_response_authorization_failed
         else
           @cache.cache("deep") do

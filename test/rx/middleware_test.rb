@@ -58,7 +58,7 @@ class MiddlewareTest < Minitest::Test
     assert_equal 403, status
   end
 
-  def test_deep_check_fails_if_costum_authorization_fails
+  def test_deep_check_fails_if_custom_authorization_fails
     middleware = Rx::Middleware.new(@app, options: { authorization: -> (env) { false }})
 
     status, _, _ = middleware.call({"PATH_INFO" => "/deep"})
