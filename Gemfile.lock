@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rx-healthcheck (0.1.4)
+    rx-healthcheck (0.1.8)
 
 GEM
   remote: https://rubygems.org/
@@ -26,4 +26,4 @@ DEPENDENCIES
   simplecov (= 0.21.2)
 
 BUNDLED WITH
-   2.2.11
+   2.2.29
