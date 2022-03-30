@@ -1,12 +1,7 @@
-require_relative "../util/heap"
-
 module Rx
   module Cache
     class InMemoryCache
       def initialize
-        @heap = Rx::Util::Heap.new do |a, b|
-          a[1] < b[1]
-        end
         @lock = Mutex.new
         @map  = Hash.new
       end
@@ -25,25 +20,26 @@ module Rx
         clean!
 
         lock.synchronize do
-          map[k]
+          unless map[k]
+            return nil
+          end
+
+          map[k][:value]
         end
       end
 
       def put(k, v, expires_in = 60)
         lock.synchronize do
-          map[k] = v
-          heap << [k, Time.now + expires_in]
+          map[k] = {:value => v, :expiration_time => Time.now + expires_in}
         end
       end
 
       private
-      attr_reader :heap, :lock, :map
+      attr_reader :lock, :map
 
       def clean!
         lock.synchronize do
-          while !heap.peek.nil? && heap.peek[1] < Time.now
-            map.delete(heap.pop[0])
-          end
+            map.delete_if { |k, v| v[:expiration_time] < Time.now }
         end
       end
     end
