@@ -2,7 +2,7 @@ require_relative "../util/heap"
 
 module Rx
   module Cache
-    class InMemoryCache
+    class LRUCache
       def initialize
         @heap = Rx::Util::Heap.new do |a, b|
           a[1] < b[1]

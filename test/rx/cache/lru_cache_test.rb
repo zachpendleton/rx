@@ -1,8 +1,8 @@
 require "test_helper"
 
-class RxCacheInMemoryCacheTest < Minitest::Test
+class RxCacheLRUCacheTest < Minitest::Test
   def setup
-    @cache = Rx::Cache::InMemoryCache.new
+    @cache = Rx::Cache::LRUCache.new
   end
 
   def test_it_stores_values

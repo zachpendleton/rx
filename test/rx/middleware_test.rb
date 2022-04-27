@@ -100,6 +100,21 @@ class MiddlewareTest < Minitest::Test
     assert_equal ["response"], body
   end
 
+  def test_lru_cache_is_default
+    middleware = Rx::Middleware.new(@app, options: { cache: true })
+    assert_equal Rx::Cache::LRUCache, middleware.instance_variable_get(:@cache).class
+  end
+
+  def test_it_allows_selection_of_lru_cache
+    middleware = Rx::Middleware.new(@app, options: { cache: "LRU" })
+    assert_equal Rx::Cache::LRUCache, middleware.instance_variable_get(:@cache).class
+  end
+
+  def test_it_allows_selection_of_map_cache
+    middleware = Rx::Middleware.new(@app, options: { cache: "MAP" })
+    assert_equal Rx::Cache::MapCache, middleware.instance_variable_get(:@cache).class
+  end
+
   def test_if_cache_option_is_false_no_caching_happens
     middleware = Rx::Middleware.new(@app, options: { cache: false})
     body1 = JSON.parse(middleware.call("PATH_INFO" => "/deep")[2].first)
