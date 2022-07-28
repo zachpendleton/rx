@@ -59,6 +59,28 @@ deep_secondary: []
 
 Each collection must contain 0 or more `Rx::Check` objects. Those checks will be performed when the health check is queried. Deep checks will always also run the readiness checks.
 
+### Cache
+
+For deep health checks Rx by default will use an in-memory cache. While this is useful when running in production, during testing it could lead to unexpected results.
+You can disable the in-memory cache by setting the cache key false in the options hash.
+
+```ruby
+Rails.application.config.middleware.insert(
+  Rx::Middleware,
+    liveness: [Rx::Check::FileSystemCheck.new],
+    readiness: [
+      Rx::Check::FileSystemCheck.new,
+      Rx::Check::ActiveRecordCheck.new,
+      Rx::Check::HttpCheck.new("http://example.com"),
+      Rx::Check::GenericCheck.new(-> { $redis.ping == "PONG" }, "redis")],
+    deep_critical: [Rx::Check::HttpCheck.new("http://criticalservice.com/health")],
+    deep_secondary: [Rx::Check::HttpCheck.new("http://otherservice.com/health-check")],
+    options: {
+      cache: false
+    }
+  )
+```
+
 ### Deep end-point authorization
 
 It is considered as a good practice to protect the deep checks with a GUID to mitigate DDOS attacks. Hence you have 2 options to enable this. One is to use the `default_authorization` by passing the token to the authorization inside options hash, which you can use in a request with the authorization_token in the header of it. The other option would be to pass a lambda with an env argument (this gives you access to hash of request data) and have your own `custom_authorization`:

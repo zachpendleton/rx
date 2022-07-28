@@ -55,11 +55,16 @@ module Rx
                 :deep_secondary_checks, :options
 
     def cache_factory(options)
-      unless options[:cache]
-        return Rx::Cache::NoOpCache.new
+      case options[:cache]
+      when true
+        Rx::Cache::LRUCache.new
+      when "LRU"
+        Rx::Cache::LRUCache.new
+      when "MAP"
+        Rx::Cache::MapCache.new
+      else
+        Rx::Cache::NoOpCache.new
       end
-
-      Rx::Cache::InMemoryCache.new
     end
 
     def health_check_request?(path)

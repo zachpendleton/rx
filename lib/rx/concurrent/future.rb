@@ -32,7 +32,7 @@ module Rx
         @state = :in_progress
         pool.submit do
           begin
-            channel << work.call
+            channel << execute_work(&work)
             @state = :completed
           rescue StandardError => ex
             @error = ex
@@ -69,6 +69,10 @@ module Rx
 
       def pool
         @@pool
+      end
+
+      def execute_work(&block)
+        defined?(Rails) ? Rails.application.executor.wrap(&block) : block.call
       end
     end
   end
