@@ -2,7 +2,7 @@ require "test_helper"
 require "net/http"
 
 class HttpCheckTest < Minitest::Test
-  MockResponse = Struct.new(:code)
+  MockResponse = Struct.new(:code, :body)
 
   def setup
     @check = Rx::Check::HttpCheck.new("http://example.com")
@@ -24,6 +24,16 @@ class HttpCheckTest < Minitest::Test
     Net::HTTP.stub :new, @http do
       res = @check.check
       assert !res.ok?
+    end
+  end
+
+  def test_it_contains_response_body_in_error
+    dummy_error_message = "Dummy error message"
+    @http.expect :request, MockResponse.new("500", dummy_error_message), [Net::HTTP::Get]
+    Net::HTTP.stub :new, @http do
+      res = @check.check
+      assert !res.ok?
+      assert_equal dummy_error_message, res.error.message
     end
   end
 

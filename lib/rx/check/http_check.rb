@@ -18,6 +18,7 @@ module Rx
           http.use_ssl = url.scheme == "https"
 
           response = http.request(Net::HTTP::Get.new(path))
+          raise StandardError.new(response.body) unless response.code == "200"
           response.code == "200"
         end
       end
