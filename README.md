@@ -97,6 +97,19 @@ options: {
  }
 ```
 
+### Customizing health-check endpoints
+
+By default, Rx will mount the health checks at `/liveness`, `/readiness`, and `/deep`. You can customize these endpoints by passing a `liveness_path`, `readiness_path`, and `deep_path` options to the middleware:
+
+```ruby
+# in this example, liveness and readiness endpoints have been customized. the deep
+# endpoint will use the default path (/deep).
+Rx::Middleware.new(options: {
+  liveness_path: "/other_liveness",
+  readiness_path: "/other_readiness"
+})
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/zachpendleton/rx.

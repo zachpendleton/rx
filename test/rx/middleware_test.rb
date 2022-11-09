@@ -137,4 +137,28 @@ class MiddlewareTest < Minitest::Test
     assert_equal [], body
   end
 
+  def test_the_liveness_url_is_configurable
+    middleware = Rx::Middleware.new(@app, options: { liveness_path: "/custom" })
+    status, _, body = middleware.call("PATH_INFO" => "/custom")
+
+    assert_equal 200, status
+    assert_equal [], body
+  end
+
+  def test_the_readiness_url_is_configurable
+    middleware = Rx::Middleware.new(@app, options: { readiness_path: "/custom" })
+    status, headers, _ = middleware.call("PATH_INFO" => "/custom")
+
+    assert_equal 200, status
+    assert_equal({"content-type" => "application/json"}, headers)
+  end
+
+  def test_the_deep_url_is_configurable
+    middleware = Rx::Middleware.new(@app, options: { deep_path: "/custom" })
+    status, _, body = middleware.call("PATH_INFO" => "/custom")
+
+    assert_equal 200, status
+    assert body[0] != "response"
+  end
+
 end

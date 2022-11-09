@@ -4,7 +4,10 @@ module Rx
   class Middleware
     DEFAULT_OPTIONS = {
       cache: true,
-      authorization: nil
+      authorization: nil,
+      liveness_path: "/liveness",
+      readiness_path: "/readiness",
+      deep_path: "/deep"
     }.freeze
 
     def initialize(app,
@@ -29,12 +32,12 @@ module Rx
       end
 
       case path(env)
-      when "/liveness"
+      when @options[:liveness_path]
         ok = check_to_component(liveness_checks).map { |x| x[:status] == 200 }.all?
         liveness_response(ok)
-      when "/readiness"
+      when @options[:readiness_path]
         readiness_response(check_to_component(readiness_checks))
-      when "/deep"
+      when @options[:deep_path]
         if !Rx::Util::HealthCheckAuthorization.new(env, @options[:authorization]).ok?
           deep_response_authorization_failed
         else
@@ -68,7 +71,7 @@ module Rx
     end
 
     def health_check_request?(path)
-      %w[/liveness /readiness /deep].include?(path)
+      [@options[:liveness_path], @options[:readiness_path], @options[:deep_path]].include?(path)
     end
 
     def liveness_response(is_ok)
