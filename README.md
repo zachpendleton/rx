@@ -20,7 +20,7 @@ Rx provides three levels of health checks:
 
 ### Rails Applications
 
-Add `rx` to your Gemfile, and then create a new initializer with something like this:
+Add `rx-healthcheck` to your Gemfile, and then create a new initializer with something like this:
 
 ```ruby
 Rails.application.config.middleware.insert(
