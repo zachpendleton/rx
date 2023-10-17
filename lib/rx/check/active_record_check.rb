@@ -13,6 +13,7 @@ module Rx
             raise StandardError.new("Undefined class ActiveRecord::Base")
           end
 
+          ActiveRecord::Base.connection.connect! unless ActiveRecord::Base.connection.active?
           ActiveRecord::Base.connection.active?
         end
       end
