@@ -7,9 +7,12 @@ GEM
   remote: https://rubygems.org/
   specs:
     docile (1.4.0)
-    minitest (5.14.4)
-    rake (13.0.3)
-    simplecov (0.21.2)
+    minitest (6.0.1)
+      prism (~> 1.5)
+    minitest-mock (5.27.0)
+    prism (1.9.0)
+    rake (13.3.1)
+    simplecov (0.22.0)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
       simplecov_json_formatter (~> 0.1)
@@ -21,10 +24,11 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  minitest (~> 5.0)
-  rake (~> 13.0)
+  minitest (~> 6)
+  minitest-mock (~> 5)
+  rake (~> 13.3)
   rx-healthcheck!
-  simplecov (= 0.21.2)
+  simplecov (= 0.22)
 
 BUNDLED WITH
-   2.2.29
+   2.6.9

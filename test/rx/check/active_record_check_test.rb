@@ -23,6 +23,8 @@ class ActiveRecordCheckTest < Minitest::Test
       assert @check.check.ok?
     end
   ensure
-    Rx::Check::ActiveRecordCheck.send(:remove_const, :ActiveRecord)
+    if Rx::Check::ActiveRecordCheck.const_defined?(:ActiveRecord)
+      Rx::Check::ActiveRecordCheck.send(:remove_const, :ActiveRecord)
+    end
   end
 end
